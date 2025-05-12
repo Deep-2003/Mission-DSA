@@ -1,1 +1,264 @@
+# ===============================
+# 23 Merge k Sorted Lists
+# ===============================
+from heapq import heappush, heappop
+
+class ListNode:
+    def _init_(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def mergeKLists(lists):
+    heap = []
+    for i, node in enumerate(lists):
+        if node:
+            heappush(heap, (node.val, i, node))
+    
+    dummy = ListNode(0)
+    curr = dummy
+
+    while heap:
+        val, i, node = heappop(heap)
+        curr.next = node
+        curr = curr.next
+        if node.next:
+            heappush(heap, (node.next.val, i, node.next))
+
+    return dummy.next
+
+# ===============================
+# 215 Kth Largest Element in an Array
+# ===============================
+import heapq
+
+def findKthLargest(nums, k):
+    return heapq.nlargest(k, nums)[-1]
+
+# ===============================
+# 239 Sliding Window Maximum
+# ===============================
+from collections import deque
+
+def maxSlidingWindow(nums, k):
+    q, res = deque(), []
+    for i in range(len(nums)):
+        while q and q[0] < i - k + 1:
+            q.popleft()
+        while q and nums[q[-1]] < nums[i]:
+            q.pop()
+        q.append(i)
+        if i >= k - 1:
+            res.append(nums[q[0]])
+    return res
+
+# ===============================
+#  Meeting Rooms II
+# ===============================
+import heapq
+
+def minMeetingRooms(intervals):
+    if not intervals:
+        return 0
+
+    intervals.sort(key=lambda x: x[0])
+    heap = [intervals[0][1]]
+
+    for interval in intervals[1:]:
+        if heap[0] <= interval[0]:
+            heapq.heappop(heap)
+        heapq.heappush(heap, interval[1])
+    
+    return len(heap)
+
+# ===============================
+# 347 Top K Frequent Elements
+# ===============================
+from collections import Counter
+import heapq
+
+def topKFrequent(nums, k):
+    count = Counter(nums)
+    return heapq.nlargest(k, count.keys(), key=count.get)
+
+# ===============================
+# 373 Find K Pairs with Smallest Sums
+# ===============================
+def kSmallestPairs(nums1, nums2, k):
+    import heapq
+    if not nums1 or not nums2:
+        return []
+
+    min_heap = []
+    for i in range(min(k, len(nums1))):
+        heapq.heappush(min_heap, (nums1[i] + nums2[0], i, 0))
+
+    res = []
+    while min_heap and len(res) < k:
+        _, i, j = heapq.heappop(min_heap)
+        res.append([nums1[i], nums2[j]])
+        if j + 1 < len(nums2):
+            heapq.heappush(min_heap, (nums1[i] + nums2[j+1], i, j+1))
+
+    return res
+
+# ===============================
+# 621 Task Scheduler
+# ===============================
+from collections import Counter
+import heapq
+
+def leastInterval(tasks, n):
+    task_counts = Counter(tasks)
+    max_heap = [-cnt for cnt in task_counts.values()]
+    heapq.heapify(max_heap)
+
+    time = 0
+    while max_heap:
+        temp = []
+        for _ in range(n + 1):
+            if max_heap:
+                temp.append(heapq.heappop(max_heap))
+        for cnt in temp:
+            if cnt + 1 < 0:
+                heapq.heappush(max_heap, cnt + 1)
+        time += n + 1 if max_heap else len(temp)
+
+    return time
+
+# ===============================
+# 862 Shortest Subarray with Sum at Least K
+# ===============================
+from collections import deque
+
+def shortestSubarray(nums, k):
+    n = len(nums)
+    prefix = [0] * (n + 1)
+    for i in range(n):
+        prefix[i+1] = prefix[i] + nums[i]
+
+    q = deque()
+    res = n + 1
+
+    for i in range(n + 1):
+        while q and prefix[i] - prefix[q[0]] >= k:
+            res = min(res, i - q.popleft())
+        while q and prefix[i] <= prefix[q[-1]]:
+            q.pop()
+        q.append(i)
+
+    return res if res <= n else -1
+# ===============================
+# 814 Binary Tree Pruning
+# ===============================
+def pruneTree(root):
+    if not root:
+        return None
+    root.left = pruneTree(root.left)
+    root.right = pruneTree(root.right)
+    if root.val == 0 and not root.left and not root.right:
+        return None
+    return root
+
+# ===============================
+# 543 Diameter of Binary Tree
+# ===============================
+def diameterOfBinaryTree(root):
+    diameter = 0
+
+    def dfs(node):
+        nonlocal diameter
+        if not node:
+            return 0
+        left = dfs(node.left)
+        right = dfs(node.right)
+        diameter = max(diameter, left + right)
+        return 1 + max(left, right)
+
+    dfs(root)
+    return diameter
+
+# ===============================
+#  257 Binary Tree Paths
+# ===============================
+def binaryTreePaths(root):
+    if not root:
+        return []
+    if not root.left and not root.right:
+        return [str(root.val)]
+    paths = []
+    for path in binaryTreePaths(root.left):
+        paths.append(str(root.val) + "->" + path)
+    for path in binaryTreePaths(root.right):
+        paths.append(str(root.val) + "->" + path)
+    return paths
+
+# ===============================
+# 236 Lowest Common Ancestor of a Binary Tree
+# ===============================
+def lowestCommonAncestor(root, p, q):
+    if not root or root == p or root == q:
+        return root
+    left = lowestCommonAncestor(root.left, p, q)
+    right = lowestCommonAncestor(root.right, p, q)
+    if left and right:
+        return root
+    return left if left else right
+
+# ===============================
+# 979 Distribute Coins in Binary Tree
+# ===============================
+def distributeCoins(root):
+    moves = 0
+
+    def dfs(node):
+        nonlocal moves
+        if not node:
+            return 0
+        left = dfs(node.left)
+        right = dfs(node.right)
+        moves += abs(left) + abs(right)
+        return node.val + left + right - 1
+
+    dfs(root)
+    return moves
+
+# ===============================
+# 331 Verify Preorder Serialization of a Binary Tree
+# ===============================
+def isValidSerialization(preorder):
+    nodes = preorder.split(',')
+    slots = 1
+    for node in nodes:
+        slots -= 1
+        if slots < 0:
+            return False
+        if node != '#':
+            slots += 2
+    return slots == 0
+
+# ===============================
+# 701 Insert into a Binary Search Tree
+# ===============================
+def insertIntoBST(root, val):
+    if not root:
+        from TreeNode import TreeNode  # define TreeNode if not imported
+        return TreeNode(val)
+    if val < root.val:
+        root.left = insertIntoBST(root.left, val)
+    else:
+        root.right = insertIntoBST(root.right, val)
+    return root
+
+# ===============================
+# 98 Validate Binary Search Tree
+# ===============================
+def isValidBST(root):
+    def validate(node, low=float('-inf'), high=float('inf')):
+        if not node:
+            return True
+        if not (low < node.val < high):
+            return False
+        return validate(node.left, low, node.val) and validate(node.right, node.val, high)
+
+    return validate(root)
 
